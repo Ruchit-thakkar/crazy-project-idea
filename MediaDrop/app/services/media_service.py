@@ -32,17 +32,57 @@ class MediaService:
         is_cancelled_func: Optional[Callable[[], bool]] = None,
     ) -> Path:
         """Download video, audio or thumbnail."""
-        if task.format_type.lower() == "thumbnail":
-            # Thumbnail download
+        fmt_lower = task.format_type.lower()
+        if fmt_lower in ("thumbnail", "image"):
             format_name = task.quality if task.quality in ("JPG", "PNG", "WEBP") else "JPG"
-            # If a custom thumbnail URL is present or from metadata
-            thumb_url = task.thumbnail_url or task.url
-            return self.thumbnail.download_thumbnail(
-                url=thumb_url,
+
+            # Check if this is a multi-image / gallery task
+            if task.custom_urls and len(task.custom_urls) > 1:
+                from app.utils.file_utils import sanitize_filename
+                gallery_folder = output_dir / sanitize_filename(task.title)
+                gallery_folder.mkdir(parents=True, exist_ok=True)
+                total_imgs = len(task.custom_urls)
+
+                for idx, img_url in enumerate(task.custom_urls):
+                    if is_cancelled_func and is_cancelled_func():
+                        from app.services.download_service import DownloadCancelledException
+                        raise DownloadCancelledException("Image download cancelled")
+
+                    self.thumbnail.download_thumbnail(
+                        url=img_url,
+                        output_dir=gallery_folder,
+                        base_name=f"photo_{idx + 1:02d}",
+                        target_format=format_name,
+                    )
+
+                    pct = float((idx + 1) / total_imgs * 100.0)
+                    if progress_callback:
+                        progress_callback({
+                            "status": "Downloading",
+                            "progress": pct,
+                            "downloaded_bytes": idx + 1,
+                            "total_bytes": total_imgs,
+                            "speed": f"{idx + 1}/{total_imgs} images",
+                            "eta": "",
+                        })
+
+                if progress_callback:
+                    progress_callback({"status": "Completed", "progress": 100.0})
+                return gallery_folder
+
+            # Single image / thumbnail
+            tag = "[thumbnail]" if fmt_lower == "thumbnail" else ""
+            img_url = (task.custom_urls[0] if task.custom_urls else None) or task.thumbnail_url or task.url
+            result_path = self.thumbnail.download_thumbnail(
+                url=img_url,
                 output_dir=output_dir,
                 base_name=f"{task.title}",
                 target_format=format_name,
+                suffix_tag=tag,
             )
+            if progress_callback:
+                progress_callback({"status": "Completed", "progress": 100.0})
+            return result_path
         else:
             return self.downloader.execute_download(
                 task=task,

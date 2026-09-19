@@ -20,6 +20,7 @@ MediaDrop is a modern, production-quality desktop application built with **Pytho
 - **"What Do You Want To Download?" Selection**:
   - **Video (MP4)**: Detects exact native resolutions (2160p 4K, 1440p, 1080p, 720p, 480p, 360p) with FPS, codec, container, and estimated filesize. Automatically merges high-res video and best audio streams via FFmpeg.
   - **Audio (MP3)**: Dynamic bitrates (320 kbps, 256 kbps, 192 kbps, 128 kbps) with duration and size estimation.
+  - **Images & Photos (Single & Galleries)**: Full-resolution photo downloading for Pinterest pins, Instagram photo posts & carousels, Twitter/X images, Unsplash, and direct image links. Select individual photos or batch-download all images in an album, with conversion to JPG, PNG, or WEBP via Pillow.
   - **Thumbnails**: Download detected thumbnails directly in Original, High, Medium, or Low quality, with instant conversion to JPG, PNG, or WEBP via Pillow.
 
 - **Non-Blocking Architecture**:

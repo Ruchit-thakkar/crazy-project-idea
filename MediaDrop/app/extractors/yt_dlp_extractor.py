@@ -8,10 +8,12 @@ import yt_dlp
 
 from app.database.models import (
     AudioQuality,
+    ImageItem,
     MediaMetadata,
     ThumbnailQuality,
     VideoQuality,
 )
+from app.extractors.image_extractor import ImageExtractor, is_direct_image_url
 from app.utils.logger import logger
 
 
@@ -75,14 +77,20 @@ class YtDlpExtractor:
 
         platform = detect_platform(clean_url)
 
+        # 1. Fast check for direct image URLs or Pinterest pins
+        if is_direct_image_url(clean_url) or "pinterest.com" in clean_url.lower() or "pin.it" in clean_url.lower():
+            img_meta = ImageExtractor.extract_image_media(clean_url, timeout=timeout)
+            if img_meta:
+                return img_meta
+
         ydl_opts = {
             "quiet": True,
             "no_warnings": True,
             "skip_download": True,
             "socket_timeout": timeout,
             "extract_flat": False,
-            "noplaylist": True,
-            "allow_unplayable_formats": False,
+            "noplaylist": False,
+            "allow_unplayable_formats": True,
         }
 
         try:
@@ -91,66 +99,116 @@ class YtDlpExtractor:
                 if not info:
                     raise RuntimeError("No media metadata was returned.")
 
-                # If a playlist URL was passed, take the first entry if available
-                if "entries" in info and info["entries"]:
-                    info = info["entries"][0]
-
-                return YtDlpExtractor._build_metadata(clean_url, platform, info)
+                meta = YtDlpExtractor._build_metadata(clean_url, platform, info)
+                if not meta.video_qualities and not meta.image_items:
+                    img_meta = ImageExtractor.extract_image_media(clean_url, timeout=timeout)
+                    if img_meta and img_meta.image_items:
+                        return img_meta
+                return meta
         except yt_dlp.utils.DownloadError as de:
+            # Fallback to ImageExtractor before raising
+            img_meta = ImageExtractor.extract_image_media(clean_url, timeout=timeout)
+            if img_meta:
+                return img_meta
+
             user_msg, detail = parse_extractor_error(str(de))
             logger.warning(f"Extract error for {clean_url}: {user_msg} ({detail})")
             raise RuntimeError(f"{user_msg}|||{detail}") from de
         except Exception as e:
+            # Fallback to ImageExtractor before raising
+            img_meta = ImageExtractor.extract_image_media(clean_url, timeout=timeout)
+            if img_meta:
+                return img_meta
+
             user_msg, detail = parse_extractor_error(str(e))
             logger.error(f"Unexpected error extracting {clean_url}: {e}")
             raise RuntimeError(f"{user_msg}|||{detail}") from e
 
     @staticmethod
     def _build_metadata(url: str, platform: str, info: Dict[str, Any]) -> MediaMetadata:
-        title = info.get("title") or "Not available"
+        # Check if carousel or multi-image entry
+        entries = info.get("entries")
+        first_entry = entries[0] if entries and len(entries) > 0 else info
+
+        title = info.get("title") or first_entry.get("title") or "Not available"
         channel = (
             info.get("uploader")
+            or first_entry.get("uploader")
             or info.get("channel")
+            or first_entry.get("channel")
             or info.get("creator")
-            or info.get("uploader_id")
             or "Not available"
         )
-        duration = info.get("duration")
-        upload_date_raw = info.get("upload_date")  # YYYYMMDD
+        duration = info.get("duration") or first_entry.get("duration")
+        upload_date_raw = info.get("upload_date") or first_entry.get("upload_date")  # YYYYMMDD
         if upload_date_raw and len(upload_date_raw) == 8:
             upload_date = f"{upload_date_raw[0:4]}-{upload_date_raw[4:6]}-{upload_date_raw[6:8]}"
         else:
-            upload_date = info.get("release_date") or "Not available"
+            upload_date = info.get("release_date") or first_entry.get("release_date") or "Not available"
 
-        language = info.get("language") or "Not available"
+        language = info.get("language") or first_entry.get("language") or "Not available"
         if language != "Not available":
             language = language.upper()
 
         visibility = "Public"
-        if info.get("availability") == "unlisted":
+        if info.get("availability") == "unlisted" or first_entry.get("availability") == "unlisted":
             visibility = "Unlisted"
-        elif info.get("is_live"):
+        elif info.get("is_live") or first_entry.get("is_live"):
             visibility = "Live Stream"
 
-        media_type = "Video"
-        if info.get("_type") == "url" or info.get("vcodec") == "none":
-            media_type = "Audio"
-
-        caption = info.get("description") or "Not available"
-        view_count = info.get("view_count")
-        like_count = info.get("like_count")
-        thumbnail_url = info.get("thumbnail") or ""
+        caption = info.get("description") or first_entry.get("description") or "Not available"
+        view_count = info.get("view_count") or first_entry.get("view_count")
+        like_count = info.get("like_count") or first_entry.get("like_count")
+        thumbnail_url = info.get("thumbnail") or first_entry.get("thumbnail") or ""
 
         # Parse Video Qualities
-        formats = info.get("formats") or []
+        formats = first_entry.get("formats") or info.get("formats") or []
         video_qualities = YtDlpExtractor._parse_video_formats(formats, duration)
 
         # Parse Audio Qualities
         audio_qualities = YtDlpExtractor._parse_audio_formats(formats, duration)
 
         # Parse Thumbnail Qualities
-        thumbnails_raw = info.get("thumbnails") or []
+        thumbnails_raw = first_entry.get("thumbnails") or info.get("thumbnails") or []
         thumbnail_qualities = YtDlpExtractor._parse_thumbnails(thumbnails_raw, thumbnail_url)
+
+        # Parse Image Items (For photos, Instagram carousels, etc.)
+        image_items: List[ImageItem] = []
+
+        if entries and len(entries) > 0:
+            for i, ent in enumerate(entries):
+                img_url = ent.get("url") or ent.get("thumbnail") or ""
+                if img_url:
+                    image_items.append(
+                        ImageItem(
+                            url=img_url,
+                            title=f"{title} - Photo {i + 1}",
+                            resolution_str="High Resolution",
+                            ext="jpg",
+                        )
+                    )
+        elif not video_qualities and thumbnail_qualities:
+            # Source contains photos/images without video
+            for i, t in enumerate(thumbnail_qualities):
+                image_items.append(
+                    ImageItem(
+                        url=t.url,
+                        title=f"{title} - {t.label}",
+                        resolution_str=t.resolution_str,
+                        width=t.width,
+                        height=t.height,
+                        ext="jpg",
+                    )
+                )
+
+        # Determine Media Type
+        media_type = "Video"
+        if not video_qualities and image_items:
+            media_type = "Photo Gallery" if len(image_items) > 1 else "Image"
+            # Clear audio qualities if this is strictly a photo/image post
+            audio_qualities = []
+        elif info.get("_type") == "url" or (info.get("vcodec") == "none" and audio_qualities):
+            media_type = "Audio"
 
         return MediaMetadata(
             url=url,
@@ -169,6 +227,7 @@ class YtDlpExtractor:
             video_qualities=video_qualities,
             audio_qualities=audio_qualities,
             thumbnail_qualities=thumbnail_qualities,
+            image_items=image_items,
         )
 
     @staticmethod

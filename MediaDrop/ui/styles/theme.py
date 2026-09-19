@@ -252,18 +252,81 @@ QCheckBox::indicator {
     width: 18px;
     height: 18px;
     border-radius: 4px;
-    border: 1px solid #292929;
-    background-color: #141414;
+    border: 1px solid #3F3F46;
+    background-color: #18181B;
 }
 
 QCheckBox::indicator:hover {
     border-color: #6366F1;
+    background-color: #202025;
 }
 
 QCheckBox::indicator:checked {
     background-color: #6366F1;
     border-color: #6366F1;
     image: url("assets/icons/check.svg");
+}
+
+/* Radio Button */
+QRadioButton {
+    color: #FFFFFF;
+    spacing: 8px;
+    font-size: 13px;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 9px;
+    border: 1.5px solid #52525B;
+    background-color: #18181B;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #6366F1;
+}
+
+QRadioButton::indicator:checked {
+    border: 5px solid #6366F1;
+    background-color: #FFFFFF;
+}
+
+/* SpinBox */
+QSpinBox {
+    background-color: #141414;
+    color: #FFFFFF;
+    border: 1px solid #292929;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    selection-background-color: #6366F1;
+    selection-color: #FFFFFF;
+}
+
+QSpinBox:focus {
+    border: 1px solid #6366F1;
+    background-color: #1B1B1B;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 20px;
+    background-color: #1B1B1B;
+    border: none;
+}
+
+QSpinBox::up-button {
+    subcontrol-position: top right;
+    border-top-right-radius: 7px;
+}
+
+QSpinBox::down-button {
+    subcontrol-position: bottom right;
+    border-bottom-right-radius: 7px;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #262626;
 }
 
 /* Labels */

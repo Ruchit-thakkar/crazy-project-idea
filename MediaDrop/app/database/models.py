@@ -41,6 +41,17 @@ class ThumbnailQuality:
 
 
 @dataclass
+class ImageItem:
+    url: str
+    title: str = ""
+    resolution_str: str = ""
+    width: Optional[int] = None
+    height: Optional[int] = None
+    filesize: Optional[int] = None
+    ext: str = "jpg"
+
+
+@dataclass
 class MediaMetadata:
     url: str
     title: str = "Not available"
@@ -58,6 +69,7 @@ class MediaMetadata:
     video_qualities: List[VideoQuality] = field(default_factory=list)
     audio_qualities: List[AudioQuality] = field(default_factory=list)
     thumbnail_qualities: List[ThumbnailQuality] = field(default_factory=list)
+    image_items: List[ImageItem] = field(default_factory=list)
 
 
 @dataclass
@@ -66,8 +78,8 @@ class DownloadItem:
     url: str = ""
     title: str = ""
     platform: str = ""
-    format_type: str = "video"  # "video", "audio", "thumbnail"
-    quality: str = ""  # "1080p", "320 kbps", "Original"
+    format_type: str = "video"  # "video", "audio", "thumbnail", "image"
+    quality: str = ""  # "1080p", "320 kbps", "Original", "JPG", "PNG", "WEBP"
     selected_format_id: str = ""
     file_path: str = ""
     file_size: int = 0
@@ -79,6 +91,7 @@ class DownloadItem:
     eta: str = "--:--"
     error_message: str = ""
     thumbnail_url: str = ""
+    custom_urls: List[str] = field(default_factory=list)  # for multi-image / gallery downloads
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
 

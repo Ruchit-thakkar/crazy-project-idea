@@ -161,7 +161,7 @@ class HomePage(QWidget):
 
         # Supported Platforms Bar (Section 4 & 15)
         platform_bar = QHBoxLayout()
-        platform_bar.setSpacing(12)
+        platform_bar.setSpacing(14)
         platform_bar.setAlignment(Qt.AlignCenter)
 
         platforms = [
@@ -169,12 +169,12 @@ class HomePage(QWidget):
             ("Instagram", "#E1306C"),
             ("TikTok", "#00F2FE"),
             ("Facebook", "#1877F2"),
-            ("X", "#FFFFFF"),
-            ("Pinterest", "#BD081C"),
+            ("X", "#E4E4E7"),
+            ("Pinterest", "#E60023"),
         ]
         for name, color in platforms:
-            p_lbl = QLabel(f"● {name}")
-            p_lbl.setStyleSheet(f"font-size: 12px; color: #71717A; font-weight: 500;")
+            p_lbl = QLabel(f"<span style='color:{color}; font-size:11px;'>●</span> <span style='color:#A1A1AA;'>{name}</span>")
+            p_lbl.setStyleSheet("font-size: 12px; font-weight: 500;")
             platform_bar.addWidget(p_lbl)
 
         input_card_layout.addLayout(platform_bar)
@@ -298,6 +298,7 @@ class HomePage(QWidget):
         format_id: str,
         thumb_url: str,
         thumb_fmt: str,
+        custom_urls: Optional[list] = None,
     ):
         if not self.current_metadata:
             return
@@ -310,6 +311,7 @@ class HomePage(QWidget):
             quality=quality_str,
             selected_format_id=format_id,
             thumbnail_url=thumb_url or self.current_metadata.thumbnail_url,
+            custom_urls=custom_urls or [],
             status="Queued",
         )
 

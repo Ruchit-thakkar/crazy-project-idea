@@ -33,8 +33,17 @@ class ThumbnailService:
         if cache_path.exists() and cache_path.stat().st_size > 0:
             return cache_path
 
+        browser_headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        }
+
         try:
-            resp = requests.get(url, timeout=15, headers={"User-Agent": "MediaDrop/1.0"})
+            resp = requests.get(url, timeout=15, headers=browser_headers)
             if resp.status_code == 200 and resp.content:
                 cache_path.write_bytes(resp.content)
                 return cache_path
@@ -49,19 +58,30 @@ class ThumbnailService:
         output_dir: Path,
         base_name: str,
         target_format: str = "JPG",
+        suffix_tag: str = "",
     ) -> Path:
-        """Download thumbnail and convert to target_format (JPG, PNG, WEBP)."""
+        """Download thumbnail or image and convert to target_format (JPG, PNG, WEBP)."""
         output_dir.mkdir(parents=True, exist_ok=True)
         safe_name = sanitize_filename(base_name)
         fmt = target_format.upper()
         ext = ".jpg" if fmt in ("JPG", "JPEG") else f".{fmt.lower()}"
 
-        target_file = get_unique_filepath(output_dir / f"{safe_name} [thumbnail]{ext}")
+        tag = f" {suffix_tag.strip()}" if suffix_tag.strip() else ""
+        target_file = get_unique_filepath(output_dir / f"{safe_name}{tag}{ext}")
+
+        browser_headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        }
 
         # Fetch image bytes
-        resp = requests.get(url, timeout=30, headers={"User-Agent": "MediaDrop/1.0"})
+        resp = requests.get(url, timeout=30, headers=browser_headers)
         if resp.status_code != 200:
-            raise RuntimeError(f"Failed to download thumbnail image (HTTP {resp.status_code})")
+            raise RuntimeError(f"Failed to download image (HTTP {resp.status_code})")
 
         img_data = resp.content
         with Image.open(BytesIO(img_data)) as img:

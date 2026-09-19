@@ -194,6 +194,28 @@ class MediaCard(QFrame):
         self.platform_badge.setText(f"● {meta.platform}")
         self.type_badge.setText(meta.media_type)
 
+        # Dynamic platform badge color
+        plat_colors = {
+            "YouTube": ("#FF0000", "rgba(255, 0, 0, 0.12)", "rgba(255, 0, 0, 0.3)"),
+            "Instagram": ("#E1306C", "rgba(225, 48, 108, 0.12)", "rgba(225, 48, 108, 0.3)"),
+            "TikTok": ("#00F2FE", "rgba(0, 242, 254, 0.12)", "rgba(0, 242, 254, 0.3)"),
+            "Facebook": ("#1877F2", "rgba(24, 119, 242, 0.12)", "rgba(24, 119, 242, 0.3)"),
+            "Pinterest": ("#E60023", "rgba(230, 0, 35, 0.12)", "rgba(230, 0, 35, 0.3)"),
+            "X": ("#E4E4E7", "rgba(228, 228, 231, 0.12)", "rgba(228, 228, 231, 0.3)"),
+        }
+        text_color, bg_color, border_color = plat_colors.get(
+            meta.platform, ("#818CF8", "rgba(99, 102, 241, 0.12)", "rgba(99, 102, 241, 0.3)")
+        )
+        self.platform_badge.setStyleSheet(f"""
+            background-color: {bg_color};
+            color: {text_color};
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid {border_color};
+        """)
+
         self.lbl_platform.setText(meta.platform)
         self.lbl_duration.setText(format_duration(meta.duration))
         self.lbl_language.setText(meta.language)
