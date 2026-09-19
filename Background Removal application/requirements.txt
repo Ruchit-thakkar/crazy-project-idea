@@ -1,0 +1,29 @@
+# Core runtime
+numpy>=1.24
+scipy>=1.10
+Pillow>=10.0
+PySide6>=6.5
+
+# AI engine (background removal). CPU works; CUDA build recommended for GPU.
+torch>=2.1
+
+# ---------------------------------------------------------------------------
+# Optional extras
+# ---------------------------------------------------------------------------
+
+# GPU acceleration on NVIDIA GPUs (matches your CUDA version, see pytorch.org):
+#   install the CUDA build instead of the default CPU wheel, e.g.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# ONNX models (drop in u2net.onnx / modnet.onnx / isnet-general-use.onnx):
+# onnxruntime>=1.16
+
+# rembg-backed IS-Net / SAM / BiRefNet engines (ISNet "Human", SAM models):
+# rembg>=2.0.50
+# pandas>=2.0      # rembg runtime detail on some platforms
+
+# ---------------------------------------------------------------------------
+# Development / testing
+# ---------------------------------------------------------------------------
+# pytest>=7.4
+# opencv-python   (used only by rembg internally; optional here)

@@ -1,0 +1,17 @@
+{
+    "download_dir": "C:\\Users\\RUCHIT\\Downloads\\MediaDrop",
+    "auto_open_completed": false,
+    "remember_last_dir": true,
+    "clipboard_detection": true,
+    "max_concurrent_downloads": 3,
+    "retry_count": 3,
+    "network_timeout": 30,
+    "speed_limit_kbs": 0,
+    "auto_merge_streams": true,
+    "default_audio_bitrate": "320k",
+    "default_thumbnail_format": "JPG",
+    "ffmpeg_path": "",
+    "theme": "dark",
+    "debug_logging": false,
+    "first_run_completed": true
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded hexagon or rounded square -->
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="#18181B" stroke="#27272A" stroke-width="2"/>
+  <!-- Download Arrow combined with Play Symbol -->
+  <path d="M24 11v17M17 21l7 7 7-7" fill="none" stroke="url(#grad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Media Base Bar / Tray with subtle glow -->
+  <path d="M14 34h20" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+</svg>
