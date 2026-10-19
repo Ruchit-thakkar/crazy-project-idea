@@ -1,0 +1,6 @@
+# Telegram Bot Dependencies
+# Independent from desktop application dependencies
+
+python-telegram-bot>=21.0,<23.0
+qrcode[pil]>=8.0
+pillow>=10.0.0

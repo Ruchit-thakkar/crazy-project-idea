@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables & secrets
+.env
+.env.*
+*.token
+tokens.txt
+secrets.json
+
+# Temporary QR files & media
+*.tmp
+temp_qr_*.png
+qr_*.png
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
